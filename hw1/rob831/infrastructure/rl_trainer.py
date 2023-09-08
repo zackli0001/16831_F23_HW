@@ -8,6 +8,7 @@ import torch
 from rob831.infrastructure import pytorch_util as ptu
 from rob831.infrastructure.logger import Logger
 from rob831.infrastructure import utils
+import pickle 
 
 # how many rollouts to save as videos to tensorboard
 MAX_NVIDEO = 2
