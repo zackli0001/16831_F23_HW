@@ -72,7 +72,7 @@ def sample_trajectory(env, policy, max_path_length, render=False, render_mode=('
                 env.render(mode=render_mode)
                 time.sleep(env.model.opt.timestep)
 
-        # TODO: hw1 solutions
+        # hw1 solutions
         obs.append(ob)
         ac = policy.get_action(ob)
         ac = ac[0]
@@ -94,7 +94,7 @@ def sample_trajectory(env, policy, max_path_length, render=False, render_mode=('
 
 def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, render=False, render_mode=('rgb_array')):
         
-        # TODO: hw1 solutions
+        # hw1 solutions
     
         timesteps_this_batch = 0
         paths = []
@@ -110,7 +110,7 @@ def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, r
         return paths, timesteps_this_batch
 
 def sample_n_trajectories(env, policy, ntraj, max_path_length, render=False, render_mode=('rgb_array')):
-    # TODO: hw1 solutions
+    # hw1 solutions
     paths = []
     for i in range(ntraj):
         # collect rollout

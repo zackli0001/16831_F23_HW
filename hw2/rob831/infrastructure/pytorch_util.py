@@ -48,7 +48,7 @@ def build_mlp(
     if isinstance(output_activation, str):
         output_activation = _str_to_activation[output_activation]
     
-    # TODO: HW1 solution
+    # HW1 solution
     layers = []
     in_size = input_size
     for _ in range(n_layers):

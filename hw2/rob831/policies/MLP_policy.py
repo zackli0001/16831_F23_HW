@@ -87,7 +87,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
     # query the policy with observation(s) to get selected action(s)
     def get_action(self, obs: np.ndarray) -> np.ndarray:
-        # TODO: hw1 solutions
+        # hw1 solutions
         if len(obs.shape) > 1:
             observation = obs
         else:
@@ -109,7 +109,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor):
-        # TODO: get this from hw1
+        # hw1 solutions
         if self.discrete:
             logits = self.logits_na(observation)
             action_distribution = distributions.Categorical(logits=logits)

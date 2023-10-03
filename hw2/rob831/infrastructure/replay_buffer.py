@@ -65,7 +65,7 @@ class ReplayBuffer(object):
     ########################################
 
     def sample_random_data(self, batch_size):
-        # TODO: hw1 solution
+        # hw1 solution
         assert (
             self.obs.shape[0]
             == self.acs.shape[0]

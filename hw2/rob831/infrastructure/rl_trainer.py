@@ -154,7 +154,7 @@ class RL_Trainer(object):
     ####################################
 
     def collect_training_trajectories(self, itr, load_initial_expertdata, collect_policy, batch_size):
-        # TODO: hw1 solution
+        # hw1 solution
         if itr == 0:
             if load_initial_expertdata:
                 paths = pickle.load(open(self.params['expert_data'], 'rb'))
@@ -177,7 +177,7 @@ class RL_Trainer(object):
         
 
     def train_agent(self):
-        # TODO: hw1 solution, check back here
+        # hw1 solution, check back here
         all_logs = []
         for train_step in range(self.params['num_agent_train_steps_per_iter']):
             ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample(self.params['train_batch_size'])

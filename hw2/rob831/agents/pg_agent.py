@@ -58,7 +58,7 @@ class PGAgent(BaseAgent):
             Monte Carlo estimation of the Q function.
         """
 
-        # TODO: return the estimated qvals based on the given rewards, using
+        # TODO:Done return the estimated qvals based on the given rewards, using
             # either the full trajectory-based estimator or the reward-to-go
             # estimator
 
@@ -75,12 +75,12 @@ class PGAgent(BaseAgent):
 
         if not self.reward_to_go:
             #use the whole traj for each timestep
-            raise NotImplementedError
+            q_values = np.concatenate([self._discounted_return(rewards) for rewards in rewards_list])
 
         # Case 2: reward-to-go PG
         # Estimate Q^{pi}(s_t, a_t) by the discounted sum of rewards starting from t
         else:
-            raise NotImplementedError
+            q_values = np.concatenate([self._discounted_cumsum(rewards) for rewards in rewards_list])
 
         return q_values  # return an array
 
@@ -144,8 +144,8 @@ class PGAgent(BaseAgent):
             ## TODO: standardize the advantages to have a mean of zero
             ## and a standard deviation of one
 
-            raise NotImplementedError
-            advantages = TODO
+            advantages -= np.mean(advantages)
+            advantages /= np.std(advantages)
 
         return advantages
 
@@ -171,8 +171,9 @@ class PGAgent(BaseAgent):
             Output: array where each index t contains sum_{t'=0}^T gamma^t' r_{t'}
         """
 
-        # TODO: create discounted_returns
-        raise NotImplementedError
+        # TODO:Done create discounted_returns
+        discounts = self.gamma ** np.arange(len(rewards))
+        discounted_returns = np.full((len(rewards), ), np.dot(discounts, rewards))
 
         return discounted_returns
 
@@ -183,9 +184,15 @@ class PGAgent(BaseAgent):
             -and returns an array where the entry in each index t' is sum_{t'=t}^T gamma^(t'-t) * r_{t'}
         """
 
-        # TODO: create `discounted_cumsums`
+        # TODO:Done create `discounted_cumsums`
         # HINT: it is possible to write a vectorized solution, but a solution
             # using a for loop is also fine
-        raise NotImplementedError
+        
+        discounted_cumsums = np.zeros_like(rewards)
+        for i in reversed(range(len(rewards))):
+            if i == len(rewards) - 1:
+                discounted_cumsums[i] = rewards[i]
+            else:
+                discounted_cumsums[i] = rewards[i] + self.gamma * discounted_cumsums[i + 1]
 
         return discounted_cumsums
