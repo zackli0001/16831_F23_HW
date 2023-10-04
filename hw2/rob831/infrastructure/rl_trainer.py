@@ -109,7 +109,7 @@ class RL_Trainer(object):
         :param expert_policy:
         """
         # Initialize the CSV file
-        self.initialize_csv()
+        # self.initialize_csv()
 
         # init vars at beginning of training
         self.total_envsteps = 0
@@ -257,7 +257,7 @@ class RL_Trainer(object):
             print('Done logging...\n\n')
 
             # Append logs to CSV
-            self.append_logs_to_csv(logs, itr)
+            # self.append_logs_to_csv(logs, itr)
 
             self.logger.flush()
 
