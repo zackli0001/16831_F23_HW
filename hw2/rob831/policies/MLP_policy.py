@@ -115,7 +115,6 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             action_distribution = distributions.Categorical(logits=logits)
             return action_distribution
         else:
-
             batch_mean = self.mean_net(observation)
             scale_tril = torch.diag(torch.exp(self.logstd))
             batch_dim = batch_mean.shape[0]
@@ -153,7 +152,7 @@ class MLPPolicyPG(MLPPolicy):
         dist = self.forward(observations)
         log_prob = dist.log_prob(actions)
         # tilt the policy toward actions with higher rewards
-        policy_loss = -(log_prob * advantages).mean() 
+        policy_loss = -(log_prob * advantages).sum()
         
         
         self.optimizer.zero_grad()

@@ -3,6 +3,8 @@ import pickle
 import os
 import sys
 import time
+import csv
+import datetime
 
 import gym
 from gym import wrappers
@@ -106,6 +108,8 @@ class RL_Trainer(object):
         :param start_relabel_with_expert: iteration at which to start relabel with expert
         :param expert_policy:
         """
+        # Initialize the CSV file
+        self.initialize_csv()
 
         # init vars at beginning of training
         self.total_envsteps = 0
@@ -252,4 +256,39 @@ class RL_Trainer(object):
                 self.logger.log_scalar(value, key, itr)
             print('Done logging...\n\n')
 
+            # Append logs to CSV
+            self.append_logs_to_csv(logs, itr)
+
             self.logger.flush()
+
+
+    def initialize_csv(self):
+        """
+        Initialize a CSV file to store logs.
+        """
+        # Create a unique filename based on the current timestamp
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        self.csv_filename = f'logs_{timestamp}.csv'
+
+        # Define the header (column names)
+        header = ["Iteration", "Eval_AverageReturn", "Eval_StdReturn", "Eval_MaxReturn", "Eval_MinReturn", 
+                  "Eval_AverageEpLen", "Train_AverageReturn", "Train_StdReturn", "Train_MaxReturn", 
+                  "Train_MinReturn", "Train_AverageEpLen", "Train_EnvstepsSoFar", "TimeSinceStart", 
+                  "Training Loss", "Initial_DataCollection_AverageReturn"]
+
+        # Write the header to the CSV file
+        with open(self.csv_filename, 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(header)
+
+    def append_logs_to_csv(self, logs, itr):
+        """
+        Append logs to the previously initialized CSV file.
+        """
+        # Add the iteration number to the logs
+        logs['Iteration'] = itr
+
+        # Open the CSV file in append mode and write the logs
+        with open(self.csv_filename, 'a') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=logs.keys())
+            writer.writerow(logs)
