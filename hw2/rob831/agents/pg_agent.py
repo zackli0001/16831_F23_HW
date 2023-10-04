@@ -38,6 +38,13 @@ class PGAgent(BaseAgent):
         """
             Training a PG agent refers to updating its actor using the given observations/actions
             and the calculated qvals/advantages that come from the seen rewards.
+
+            observations: shape: (batch_size * episode_length, )
+            actions: shape: (batch_size * episode_length, )
+            rewards_list: list of np.arrays, each inner np.array is (episode_length, ) for a single trajectory
+            next_observations: shape: (batch_size * episode_length,)
+            terminals: shape: (batch_size * episode_length,)
+
         """
 
         # TODO: update the PG actor/policy using the given batch of data, and
@@ -57,7 +64,6 @@ class PGAgent(BaseAgent):
             self.calculate_q_vals(rewards_list)
         )
         
-
         return train_log
 
 
@@ -65,6 +71,8 @@ class PGAgent(BaseAgent):
 
         """
             Monte Carlo estimation of the Q function.
+            rewards_list: list of np.arrays, each inner np.array is (episode_length, ) for a single trajectory
+                          shape of unconcatenated_rews provides convenient computation for discounted rewards
         """
 
         # TODO:Done return the estimated qvals based on the given rewards, using
@@ -152,9 +160,8 @@ class PGAgent(BaseAgent):
         if self.standardize_advantages:
             ## TODO: standardize the advantages to have a mean of zero
             ## and a standard deviation of one
-
-            advantages -= np.mean(advantages)
-            advantages /= np.std(advantages)
+            
+            advantages = normalize(advantages, np.mean(advantages), np.std(advantages))
 
         return advantages
 
@@ -165,7 +172,7 @@ class PGAgent(BaseAgent):
         self.replay_buffer.add_rollouts(paths)
 
     def sample(self, batch_size):
-        return self.replay_buffer.sample_recent_data(batch_size, concat_rew=False)
+        return self.replay_buffer.sample_recent_data(batch_size, concat_rew=False)  # Question: why not concat_rew=True?
 
     #####################################################
     ################## HELPER FUNCTIONS #################
@@ -184,7 +191,7 @@ class PGAgent(BaseAgent):
         discounts = self.gamma ** np.arange(len(rewards))
         discounted_returns = np.full((len(rewards), ), np.dot(discounts, rewards))
 
-        return discounted_returns
+        return discounted_returns # np.array
 
     def _discounted_cumsum(self, rewards):
         """
@@ -204,4 +211,4 @@ class PGAgent(BaseAgent):
             else:
                 discounted_cumsums[i] = rewards[i] + self.gamma * discounted_cumsums[i + 1]
 
-        return discounted_cumsums
+        return discounted_cumsums # np.array

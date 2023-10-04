@@ -33,8 +33,8 @@ class ReplayBuffer(object):
             self.next_obs = next_observations[-self.max_size:]
             self.terminals = terminals[-self.max_size:]
             self.concatenated_rews = concatenated_rews[-self.max_size:]
-            self.unconcatenated_rews = unconcatenated_rews[-self.max_size:]
-        else:
+            self.unconcatenated_rews = unconcatenated_rews[-self.max_size:] # though not rigorours, it's OK for initialization
+        else: # When receive new rollouts
             self.obs = np.concatenate([self.obs, observations])[-self.max_size:]
             self.acs = np.concatenate([self.acs, actions])[-self.max_size:]
             self.next_obs = np.concatenate(
@@ -46,10 +46,13 @@ class ReplayBuffer(object):
             self.concatenated_rews = np.concatenate(
                 [self.concatenated_rews, concatenated_rews]
             )[-self.max_size:]
-            if isinstance(unconcatenated_rews, list):
+
+            if isinstance(unconcatenated_rews, list): # type(unconcatenated) == list(np.arrays)
                 self.unconcatenated_rews += unconcatenated_rews  # TODO keep only latest max_size around
             else:
                 self.unconcatenated_rews.append(unconcatenated_rews)  # TODO keep only latest max_size around
+            num_of_rollouts_to_keep =  self.max_size // get_pathlength(paths[0]) + 1  # question: +1 or not ????
+            self.unconcatenated_rews = self.unconcatenated_rews[-num_of_rollouts_to_keep:]
 
     ########################################
     ########################################
@@ -85,11 +88,14 @@ class ReplayBuffer(object):
             num_recent_rollouts_to_return = 0
             num_datapoints_so_far = 0
             index = -1
+            # Obtain how many recent rollouts we need to return
             while num_datapoints_so_far < batch_size:
                 recent_rollout = self.paths[index]
                 index -=1
                 num_recent_rollouts_to_return +=1
                 num_datapoints_so_far += get_pathlength(recent_rollout)
+            # Return the recent rollouts
             rollouts_to_return = self.paths[-num_recent_rollouts_to_return:]
+            # training data below are from integer number of rollouts, hence they are dimensionally consistent
             observations, actions, next_observations, terminals, concatenated_rews, unconcatenated_rews = convert_listofrollouts(rollouts_to_return)
             return observations, actions, unconcatenated_rews, next_observations, terminals
