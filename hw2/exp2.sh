@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define arrays of values you want to try for b* and r*
-batch_sizes=(5000 2500 1000 500 100 50)
-learning_rates=(0.001 0.01 0.1)
+batch_sizes=(900)
+learning_rates=(0.06)
 
 # Counter for simultaneous processes
 count=0
@@ -13,7 +13,7 @@ for b in "${batch_sizes[@]}"; do
         # Run the command in the background
         python rob831/scripts/run_hw2.py --env_name InvertedPendulum-v4 \
         --ep_len 1000 --discount 0.9 -n 100 -l 2 -s 64 -b $b -lr $r -rtg \
-        --exp_name q2_b$b_r$r &
+        --exp_name q2_b${b}_r${r} &
 
         # Increment the counter
         ((count++))
