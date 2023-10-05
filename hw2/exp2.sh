@@ -1,8 +1,13 @@
 #!/bin/bash
 
 # Define arrays of values you want to try for b* and r*
-batch_sizes=(900)
-learning_rates=(0.06)
+
+# Reach training goal of 1000 within 100 iterations but not stablized
+# batch_sizes=(900)
+# learning_rates=(0.06)
+
+batch_sizes=(20000)
+learning_rates=(0.01)
 
 # Counter for simultaneous processes
 count=0

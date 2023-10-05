@@ -122,17 +122,21 @@ class PGAgent(BaseAgent):
             values = unnormalize(values_normalized, q_values.mean(), q_values.std())
 
             if self.gae_lambda is not None:
-                ## append a dummy T+1 value for simpler recursive calculation
-                values = np.append(values, [0])
+                ## DEPRECATED: append a dummy T+1 value for simpler recursive calculation
+                # values = np.append(values, [0])
 
                 ## combine rews_list into a single array
                 rewards = np.concatenate(rewards_list)
 
                 ## create empty numpy array to populate with GAE advantage
                 ## estimates, with dummy T+1 value for simpler recursive calculation
-                batch_size = obs.shape[0]
-                advantages = np.zeros(batch_size + 1)
 
+                batch_size = obs.shape[0]
+
+                # DEPRECATED
+                # advantages = np.zeros(batch_size + 1)
+
+                advantages = np.zeros(batch_size) 
                 for i in reversed(range(batch_size)):
                     ## TODO: recursively compute advantage estimates starting from
                         ## timestep T.
@@ -141,14 +145,18 @@ class PGAgent(BaseAgent):
                         ## 0 otherwise.
                     ## HINT 2: self.gae_lambda is the lambda value in the
                         ## GAE formula
-                    raise NotImplementedError
+                    
+                    # NOTE: processing GAE_t = TD_t + gamma * lambda * GAE_{t+1}, where TD_t = r_t + gamma * V(s_{t+1}) - V(s_t)
+                    if terminals[i]: # last state in a trajectory
+                        advantages[i] = rewards[i] - values[i]
+                    else:
+                        advantages[i] = rewards[i] + self.gamma * advantages[i + 1] - values[i] + self.gamma * self.gae_lambda * advantages[i + 1] # Eqn(15 + 21)
 
-                # remove dummy advantage
-                advantages = advantages[:-1]
+                # DEPRECATED: remove dummy advantage
+                # advantages = advantages[:-1]
 
             else:
                 ## TODO: compute advantage estimates using q_values, and values as baselines
-                # raise NotImplementedError
                 advantages = q_values - values
 
         # Else, just set the advantage to [Q]
