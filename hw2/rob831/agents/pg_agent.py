@@ -150,7 +150,7 @@ class PGAgent(BaseAgent):
                     if terminals[i]: # last state in a trajectory
                         advantages[i] = rewards[i] - values[i]
                     else:
-                        advantages[i] = rewards[i] + self.gamma * advantages[i + 1] - values[i] + self.gamma * self.gae_lambda * advantages[i + 1] # Eqn(15 + 21)
+                        advantages[i] = rewards[i] + self.gamma * values[i + 1] - values[i] + self.gamma * self.gae_lambda * advantages[i + 1] # Eqn(15 + 21)
 
                 # DEPRECATED: remove dummy advantage
                 # advantages = advantages[:-1]

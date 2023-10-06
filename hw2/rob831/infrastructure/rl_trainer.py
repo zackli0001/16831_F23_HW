@@ -3,8 +3,8 @@ import pickle
 import os
 import sys
 import time
-import csv
-import datetime
+
+import multiprocessing as mp
 
 import gym
 from gym import wrappers
@@ -108,8 +108,6 @@ class RL_Trainer(object):
         :param start_relabel_with_expert: iteration at which to start relabel with expert
         :param expert_policy:
         """
-        # Initialize the CSV file
-        # self.initialize_csv()
 
         # init vars at beginning of training
         self.total_envsteps = 0
@@ -154,6 +152,83 @@ class RL_Trainer(object):
                 if self.params['save_params']:
                     self.agent.save('{}/agent_itr_{}.pt'.format(self.params['logdir'], itr))
 
+    # Not completed multi-thread version
+    # def worker(self, start, end, collect_policy, eval_policy, initial_expertdata, relabel_with_expert, start_relabel_with_expert, expert_policy, total_envsteps):
+    #     for itr in range(start, end):
+    #         print("\n\n********** Iteration %i ************"%itr)
+
+    #         # decide if videos should be rendered/logged at this iteration
+    #         if itr % self.params['video_log_freq'] == 0 and self.params['video_log_freq'] != -1:
+    #             self.log_video = True
+    #         else:
+    #             self.log_video = False
+
+    #         # decide if metrics should be logged
+    #         if self.params['scalar_log_freq'] == -1:
+    #             self.log_metrics = False
+    #         elif itr % self.params['scalar_log_freq'] == 0:
+    #             self.log_metrics = True
+    #         else:
+    #             self.log_metrics = False
+
+    #         # collect trajectories, to be used for training
+    #         training_returns = self.collect_training_trajectories(itr,
+    #                             initial_expertdata, collect_policy,
+    #                             self.params['batch_size'])
+    #         paths, envsteps_this_batch, train_video_paths = training_returns
+    #         with total_envsteps.get_lock():
+    #             total_envsteps.value += envsteps_this_batch
+
+    #         # add collected data to replay buffer
+    #         self.agent.add_to_replay_buffer(paths)
+
+    #         # train agent (using sampled data from replay buffer)
+    #         train_logs = self.train_agent()
+
+    #         # log/save
+    #         if self.log_video or self.log_metrics:
+    #             # perform logging
+    #             print('\nBeginning logging procedure...')
+    #             self.perform_logging(itr, paths, eval_policy, train_video_paths, train_logs)
+
+    #             if self.params['save_params']:
+    #                 self.agent.save('{}/agent_itr_{}.pt'.format(self.params['logdir'], itr))
+
+    # def run_training_loop(self, n_iter, collect_policy, eval_policy, initial_expertdata=None, relabel_with_expert=False, start_relabel_with_expert=1, expert_policy=None):
+    #     """
+    #     :param n_iter:  number of (dagger) iterations
+    #     :param collect_policy:
+    #     :param eval_policy:
+    #     :param initial_expertdata:
+    #     :param relabel_with_expert:  whether to perform dagger
+    #     :param start_relabel_with_expert: iteration at which to start relabel with expert
+    #     :param expert_policy:
+    #     """
+
+    #     # init vars at beginning of training
+    #     self.total_envsteps = mp.Value('i', 0, lock=True)  # multiprocessing Value to share data across processes
+    #     self.start_time = time.time()
+
+    #     # Number of workers (logical cores)
+    #     num_workers = mp.cpu_count()
+
+    #     # Split iterations across workers
+    #     iter_per_worker = n_iter // num_workers
+
+    #     processes = []
+    #     for i in range(num_workers):
+    #         start_iter = i * iter_per_worker
+    #         end_iter = (i + 1) * iter_per_worker if i != num_workers - 1 else n_iter
+
+    #         p = mp.Process(target=self.worker, args=(start_iter, end_iter, collect_policy, eval_policy, initial_expertdata, relabel_with_expert, start_relabel_with_expert, expert_policy, self.total_envsteps))
+    #         p.start()
+    #         processes.append(p)
+
+    #     for p in processes:
+    #         p.join()
+ 
+    #     self.total_envsteps = self.total_envsteps.value  # Convert back to regular int after all processes have finished
+    
     ####################################
     ####################################
 
@@ -256,39 +331,4 @@ class RL_Trainer(object):
                 self.logger.log_scalar(value, key, itr)
             print('Done logging...\n\n')
 
-            # Append logs to CSV
-            # self.append_logs_to_csv(logs, itr)
-
             self.logger.flush()
-
-
-    def initialize_csv(self):
-        """
-        Initialize a CSV file to store logs.
-        """
-        # Create a unique filename based on the current timestamp
-        timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        self.csv_filename = f'logs_{timestamp}.csv'
-
-        # Define the header (column names)
-        header = ["Iteration", "Eval_AverageReturn", "Eval_StdReturn", "Eval_MaxReturn", "Eval_MinReturn", 
-                  "Eval_AverageEpLen", "Train_AverageReturn", "Train_StdReturn", "Train_MaxReturn", 
-                  "Train_MinReturn", "Train_AverageEpLen", "Train_EnvstepsSoFar", "TimeSinceStart", 
-                  "Training Loss", "Initial_DataCollection_AverageReturn"]
-
-        # Write the header to the CSV file
-        with open(self.csv_filename, 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(header)
-
-    def append_logs_to_csv(self, logs, itr):
-        """
-        Append logs to the previously initialized CSV file.
-        """
-        # Add the iteration number to the logs
-        logs['Iteration'] = itr
-
-        # Open the CSV file in append mode and write the logs
-        with open(self.csv_filename, 'a') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=logs.keys())
-            writer.writerow(logs)
