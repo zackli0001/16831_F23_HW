@@ -18,6 +18,7 @@ from rob831.infrastructure.dqn_utils import (
         get_wrapper_by_name,
         register_custom_envs,
 )
+from rob831.infrastructure.monitor import Monitor
 
 # how many rollouts to save as videos to tensorboard
 MAX_NVIDEO = 2
@@ -54,22 +55,13 @@ class RL_Trainer(object):
         self.env = gym.make(self.params['env_name'])
         if 'env_wrappers' in self.params:
             # These operations are currently only for Atari envs
-            self.env = wrappers.Monitor(
+            self.env = Monitor(
                 self.env,
                 os.path.join(self.params['logdir'], "gym"),
                 force=True,
                 video_callable=(None if self.params['video_log_freq'] > 0 else False),
             )
             self.env = params['env_wrappers'](self.env)
-            self.mean_episode_reward = -float('nan')
-            self.best_mean_episode_reward = -float('inf')
-        if 'non_atari_colab_env' in self.params and self.params['video_log_freq'] > 0:
-            self.env = wrappers.Monitor(
-                self.env,
-                os.path.join(self.params['logdir'], "gym"),
-                force=True,
-                video_callable=(None if self.params['video_log_freq'] > 0 else False),
-            )
             self.mean_episode_reward = -float('nan')
             self.best_mean_episode_reward = -float('inf')
 
