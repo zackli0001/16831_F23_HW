@@ -4,6 +4,8 @@ import os
 import sys
 import time
 
+import multiprocessing as mp
+
 import gym
 from gym import wrappers
 import numpy as np
@@ -150,16 +152,119 @@ class RL_Trainer(object):
                 if self.params['save_params']:
                     self.agent.save('{}/agent_itr_{}.pt'.format(self.params['logdir'], itr))
 
+    # Not completed multi-thread version
+    # def worker(self, start, end, collect_policy, eval_policy, initial_expertdata, relabel_with_expert, start_relabel_with_expert, expert_policy, total_envsteps):
+    #     for itr in range(start, end):
+    #         print("\n\n********** Iteration %i ************"%itr)
+
+    #         # decide if videos should be rendered/logged at this iteration
+    #         if itr % self.params['video_log_freq'] == 0 and self.params['video_log_freq'] != -1:
+    #             self.log_video = True
+    #         else:
+    #             self.log_video = False
+
+    #         # decide if metrics should be logged
+    #         if self.params['scalar_log_freq'] == -1:
+    #             self.log_metrics = False
+    #         elif itr % self.params['scalar_log_freq'] == 0:
+    #             self.log_metrics = True
+    #         else:
+    #             self.log_metrics = False
+
+    #         # collect trajectories, to be used for training
+    #         training_returns = self.collect_training_trajectories(itr,
+    #                             initial_expertdata, collect_policy,
+    #                             self.params['batch_size'])
+    #         paths, envsteps_this_batch, train_video_paths = training_returns
+    #         with total_envsteps.get_lock():
+    #             total_envsteps.value += envsteps_this_batch
+
+    #         # add collected data to replay buffer
+    #         self.agent.add_to_replay_buffer(paths)
+
+    #         # train agent (using sampled data from replay buffer)
+    #         train_logs = self.train_agent()
+
+    #         # log/save
+    #         if self.log_video or self.log_metrics:
+    #             # perform logging
+    #             print('\nBeginning logging procedure...')
+    #             self.perform_logging(itr, paths, eval_policy, train_video_paths, train_logs)
+
+    #             if self.params['save_params']:
+    #                 self.agent.save('{}/agent_itr_{}.pt'.format(self.params['logdir'], itr))
+
+    # def run_training_loop(self, n_iter, collect_policy, eval_policy, initial_expertdata=None, relabel_with_expert=False, start_relabel_with_expert=1, expert_policy=None):
+    #     """
+    #     :param n_iter:  number of (dagger) iterations
+    #     :param collect_policy:
+    #     :param eval_policy:
+    #     :param initial_expertdata:
+    #     :param relabel_with_expert:  whether to perform dagger
+    #     :param start_relabel_with_expert: iteration at which to start relabel with expert
+    #     :param expert_policy:
+    #     """
+
+    #     # init vars at beginning of training
+    #     self.total_envsteps = mp.Value('i', 0, lock=True)  # multiprocessing Value to share data across processes
+    #     self.start_time = time.time()
+
+    #     # Number of workers (logical cores)
+    #     num_workers = mp.cpu_count()
+
+    #     # Split iterations across workers
+    #     iter_per_worker = n_iter // num_workers
+
+    #     processes = []
+    #     for i in range(num_workers):
+    #         start_iter = i * iter_per_worker
+    #         end_iter = (i + 1) * iter_per_worker if i != num_workers - 1 else n_iter
+
+    #         p = mp.Process(target=self.worker, args=(start_iter, end_iter, collect_policy, eval_policy, initial_expertdata, relabel_with_expert, start_relabel_with_expert, expert_policy, self.total_envsteps))
+    #         p.start()
+    #         processes.append(p)
+
+    #     for p in processes:
+    #         p.join()
+ 
+    #     self.total_envsteps = self.total_envsteps.value  # Convert back to regular int after all processes have finished
+    
     ####################################
     ####################################
 
     def collect_training_trajectories(self, itr, load_initial_expertdata, collect_policy, batch_size):
-        # TODO: get this from hw1
-        raise NotImplementedError
+        # hw1 solution
+        if itr == 0:
+            if load_initial_expertdata:
+                paths = pickle.load(open(self.params['expert_data'], 'rb'))
+                return paths, 0, None
+            else:
+                num_transitions_to_sample = self.params['batch_size_initial']
+        else:
+                num_transitions_to_sample = self.params['batch_size']
+
+        print("\nCollecting data to be used for training...")
+        paths, envsteps_this_batch = utils.sample_trajectories(
+            self.env, collect_policy, num_transitions_to_sample, self.params['ep_len'])
+
+        train_video_paths = None
+        if self.log_video:
+            print('\nCollecting train rollouts to be used for saving videos...')
+            train_video_paths = utils.sample_n_trajectories(self.env, collect_policy, MAX_NVIDEO, MAX_VIDEO_LEN, True)
+
+        return paths, envsteps_this_batch, train_video_paths
+        
 
     def train_agent(self):
-        # TODO: get this from hw1
-        raise NotImplementedError
+        # hw1 solution, check back here
+        # ob_batch, ac_batch, next_ob_batch, terminal_batch ARE CONCATENATED
+        # re_batch is a list of np.arrays
+        all_logs = []
+        for train_step in range(self.params['num_agent_train_steps_per_iter']):
+            ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample(self.params['train_batch_size'])
+            train_log = self.agent.train(ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch)
+            all_logs.append(train_log)
+        return all_logs
 
     ####################################
     ####################################
