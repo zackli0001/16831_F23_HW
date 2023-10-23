@@ -341,14 +341,36 @@ class MemoryOptimizedReplayBuffer(object):
         """This is a memory efficient implementation of the replay buffer.
 
         The sepecific memory optimizations use here are:
-            - only store each frame once rather than k times
+            - only store each frame once rather than k times        missing_context = self.frame_history_len - (end_idx - start_idx)
+        # if zero padding is needed for missing context
+        # or we are on the boundry of the buffer
+        if start_idx < 0 or missing_context > 0:
+            frames = [np.zeros_like(self.obs[0]) for _ in range(missing_context)]
+            for idx in range(start_idx, end_idx):
+                frames.append(self.obs[idx % self.size])
+            return np.concatenate(frames, 2)
+        else:
+            # this optimization has potential to saves about 30% compute time \o/
+            img_h, img_w = self.obs.shape[1], self.obs.shape[2]
+            return self.obs[start_idx:end_idx].transpose(1, 2, 0, 3).reshape(img_h, img_w, -1)
               even if every observation normally consists of k last frames
             - store frames as np.uint8 (actually it is most time-performance
               to cast them back to float32 on GPU to minimize memory transfer
               time)
             - store frame_t and frame_(t+1) in the same buffer.
-
-        For the tipical use case in Atari Deep RL buffer with 1M frames the total
+        missing_context = self.frame_history_len - (end_idx - start_idx)
+        # if zero padding is needed for missing context
+        # or we are on the boundry of the buffer
+        if start_idx < 0 or missing_context > 0:
+            frames = [np.zeros_like(self.obs[0]) for _ in range(missing_context)]
+            for idx in range(start_idx, end_idx):
+                frames.append(self.obs[idx % self.size])
+            return np.concatenate(frames, 2)
+        else:
+            # this optimization has potential to saves about 30% compute time \o/
+            img_h, img_w = self.obs.shape[1], self.obs.shape[2]
+            return self.obs[start_idx:end_idx].transpose(1, 2, 0, 3).reshape(img_h, img_w, -1)
+        For the typical use case in Atari Deep RL buffer with 1M frames the total
         memory footprint of this buffer is 10^6 * 84 * 84 bytes ~= 7 gigabytes
 
         Warning! Assumes that returning frame of zeros at the beginning
@@ -424,7 +446,9 @@ class MemoryOptimizedReplayBuffer(object):
             Array of shape (batch_size,) and dtype np.float32
         """
         assert self.can_sample(batch_size)
-        idxes = sample_n_unique(lambda: random.randint(0, self.num_in_buffer - 2), batch_size)
+        # Sample for one batch
+        # random.randint(inclusive start, inclusive end)
+        idxes = sample_n_unique(lambda: random.randint(0, self.num_in_buffer - 2), batch_size)  # -2 ensures a valid next state for all samples
         return self._encode_sample(idxes)
 
     def encode_recent_observation(self):
@@ -443,19 +467,34 @@ class MemoryOptimizedReplayBuffer(object):
     def _encode_observation(self, idx):
         end_idx   = idx + 1 # make noninclusive
         start_idx = end_idx - self.frame_history_len
-        # this checks if we are using low-dimensional observations, such as RAM
+        
+        # this checks if we are using low-dimensional observations (instead of image state), such as RAM
         # state, in which case we just directly return the latest RAM.
         if len(self.obs.shape) == 2:
             return self.obs[end_idx-1]
+        
         # if there weren't enough frames ever in the buffer for context
+        """
+        If start_idx is negative but the buffer is already full (self.num_in_buffer == self.size), 
+        it implies that the buffer has wrapped around and started overwriting old frames. 
+        In such a scenario, a negative start_idx should not be reset to 0 as it would mix frames from different episodes.
+        """
         if start_idx < 0 and self.num_in_buffer != self.size:
             start_idx = 0
-        for idx in range(start_idx, end_idx - 1):
+        
+        # to make sure the encoded observations are from the same episode (after a done)
+        for idx in range(start_idx, end_idx - 1):  # last frame at end_idx - 1 need not be checked
             if self.done[idx % self.size]:
                 start_idx = idx + 1
+        
         missing_context = self.frame_history_len - (end_idx - start_idx)
         # if zero padding is needed for missing context
         # or we are on the boundry of the buffer
+        """
+        Create and return encoded a single idx's observation.
+        For wrap-around cases, deep-copy data which appended to any missing context.
+        For non-wrap around cases in such circular buffer, just slice and return the data
+        """
         if start_idx < 0 or missing_context > 0:
             frames = [np.zeros_like(self.obs[0]) for _ in range(missing_context)]
             for idx in range(start_idx, end_idx):
@@ -464,7 +503,7 @@ class MemoryOptimizedReplayBuffer(object):
         else:
             # this optimization has potential to saves about 30% compute time \o/
             img_h, img_w = self.obs.shape[1], self.obs.shape[2]
-            return self.obs[start_idx:end_idx].transpose(1, 2, 0, 3).reshape(img_h, img_w, -1)
+            return self.obs[start_idx:end_idx].transpose(1, 2, 0, 3).reshape(img_h, img_w, -1) # same as np.concatenate(XXXX, 2)
 
     def store_frame(self, frame):
         """Store a single frame in the buffer at the next available index, overwriting
@@ -481,14 +520,14 @@ class MemoryOptimizedReplayBuffer(object):
         idx: int
             Index at which the frame is stored. To be used for `store_effect` later.
         """
-        if self.obs is None:
+        if self.obs is None:  # initialization
             self.obs      = np.empty([self.size] + list(frame.shape), dtype=np.float32 if self.lander else np.uint8)
             self.action   = np.empty([self.size],                     dtype=np.int32)
             self.reward   = np.empty([self.size],                     dtype=np.float32)
             self.done     = np.empty([self.size],                     dtype=bool)
         self.obs[self.next_idx] = frame
 
-        ret = self.next_idx
+        ret = self.next_idx  # currently stored location
         self.next_idx = (self.next_idx + 1) % self.size
         self.num_in_buffer = min(self.size, self.num_in_buffer + 1)
 

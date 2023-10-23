@@ -8,7 +8,7 @@ tensorboard==2.10.0
 tensorboardX==2.5.1
 matplotlib==3.8.0
 patchelf
-torch==2.0.1
+torch==2.1.0
 pyvirtualdisplay
 IPython
 gym-notebook-wrapper

@@ -57,17 +57,22 @@ class DQNCritic(BaseCritic):
             returns:
                 nothing
         """
-        ob_no = ptu.from_numpy(ob_no)
+        ob_no = ptu.from_numpy(ob_no) # shape: (sum_of_path_lengths, ob_dim)
         ac_na = ptu.from_numpy(ac_na).to(torch.long)
         next_ob_no = ptu.from_numpy(next_ob_no)
         reward_n = ptu.from_numpy(reward_n)
         terminal_n = ptu.from_numpy(terminal_n)
 
-        qa_t_values = self.q_net(ob_no)
-        q_t_values = torch.gather(qa_t_values, 1, ac_na.unsqueeze(1)).squeeze(1)
+        # Q-values of all actions at current time step
+        qa_t_values = self.q_net(ob_no) # shape: (sum_of_path_lengths, ac_dim)
         
-        # TODO compute the Q-values from the target network 
-        qa_tp1_values = TODO
+        # Q-values of action taken at current time step
+        # for each row in qa_t_values, it's collecting the Q-value corresponding to the action taken, as specified by ac_na.
+        q_t_values = torch.gather(qa_t_values, 1, ac_na.unsqueeze(1)).squeeze(1) # shape: (sum_of_path_lengths,)
+        
+        # TODO compute the Q-values from the target network
+        # Q-values of all actions at next time step (tplus1)
+        qa_tp1_values = self.q_net_target(next_ob_no) # shape: (sum_of_path_lengths, ac_dim)
 
         if self.double_q:
             # You must fill this part for Q2 of the Q-learning portion of the homework.
@@ -77,12 +82,13 @@ class DQNCritic(BaseCritic):
             # and page 4 of https://arxiv.org/pdf/1509.06461.pdf is also a good reference.
             TODO
         else:
-            q_tp1, _ = qa_tp1_values.max(dim=1)
+            # "_" is the discarded argmax indices
+            q_tp1, _ = qa_tp1_values.max(dim=1) # select best actions at next time step
 
         # TODO compute targets for minimizing Bellman error
         # HINT: as you saw in lecture, this would be:
             #currentReward + self.gamma * qValuesOfNextTimestep * (not terminal)
-        target = TODO
+        target = reward_n + self.gamma * q_tp1 * (1 - terminal_n) # shape: (sum_of_path_lengths,)
         target = target.detach()
 
         assert q_t_values.shape == target.shape
