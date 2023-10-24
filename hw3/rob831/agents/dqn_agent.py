@@ -63,7 +63,7 @@ class DQNAgent(object):
                 # to deal with the partial observability of the environment. Get the most recent 
                 # `frame_history_len` observations using functionality from the replay buffer,
                 # and then use those observations as input to your actor. 
-            most_recent_observations = self.replay_buffer.sample(self.batch_size)[0]
+            most_recent_observations = self.replay_buffer.encode_recent_observation()
             action = self.actor.get_action(most_recent_observations)
         
         # TODO take a step in the environment using the action from the policy

@@ -373,7 +373,7 @@ class MemoryOptimizedReplayBuffer(object):
         For the typical use case in Atari Deep RL buffer with 1M frames the total
         memory footprint of this buffer is 10^6 * 84 * 84 bytes ~= 7 gigabytes
 
-        Warning! Assumes that returning frame of zeros at the beginning
+        Warning! Assumes that returning frame of zerlearning_rate_scheduleos at the beginning
         of the episode, when there is less frames than `frame_history_len`,
         is acceptable.
 
@@ -390,7 +390,7 @@ class MemoryOptimizedReplayBuffer(object):
         self.size = size
         self.frame_history_len = frame_history_len
 
-        self.next_idx      = 0
+        self.next_idx      = 0  # points to an empty location to store a new obs or filled location to be overwritten
         self.num_in_buffer = 0
 
         self.obs      = None
@@ -520,6 +520,10 @@ class MemoryOptimizedReplayBuffer(object):
         idx: int
             Index at which the frame is stored. To be used for `store_effect` later.
         """
+
+        """
+        For self.obs = np.empty(), if self.size = 1000 and frame.shape = (84, 84, 3), the resulting list would be [1000, 84, 84, 3].
+        """
         if self.obs is None:  # initialization
             self.obs      = np.empty([self.size] + list(frame.shape), dtype=np.float32 if self.lander else np.uint8)
             self.action   = np.empty([self.size],                     dtype=np.int32)
@@ -538,6 +542,12 @@ class MemoryOptimizedReplayBuffer(object):
         at index idx. The reason `store_frame` and `store_effect` is broken
         up into two functions is so that once can call `encode_recent_observation`
         in between.
+
+        So,
+
+        1. call store_frame()
+        2. call encode_recent_observation()
+        3. call store_effect()
 
         Paramters
         ---------

@@ -18,7 +18,7 @@
                 "--seed",
                 "1"
             ],
-            "pythonPath": "/home/zack/Applications/anaconda3/envs/rob831/bin/python"
+            "python": "/home/zack/Applications/anaconda3/envs/rob831/bin/python"
         }
         
     ]
