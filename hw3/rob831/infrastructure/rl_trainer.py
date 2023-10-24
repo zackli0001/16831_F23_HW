@@ -109,6 +109,36 @@ class RL_Trainer(object):
         agent_class = self.params['agent_class']
         self.agent = agent_class(self.env, self.params['agent_params'])
 
+    """
+    Outer Training Loop (run_training_loop):
+
+    This loop represents the overall training process, iterating over a specified number of training iterations (n_iter).
+    In each iteration, the agent interacts with the environment to collect data (trajectories or transitions) 
+    and then uses this data to update its policy or Q-function.
+    Logging, evaluation, and other housekeeping tasks (like saving the model) might also be performed periodically within this loop.
+    
+    Inner Training Loop (train_agent):
+
+    This loop represents the optimization process for the agent's neural network(s).
+    In each step of this loop, a batch of data is sampled from the replay buffer, and the agent's network is updated using this batch.
+    The number of updates in this inner loop (num_agent_train_steps_per_iter) can be greater than 1, 
+    meaning the agent might update its network multiple times using different batches of data before collecting new data from the environment.
+    
+    Efficiency: 
+    
+    By storing data in a replay buffer and sampling multiple batches from it, 
+    the agent can make better use of the data it collects. 
+    This is especially important in environments where data collection is expensive or slow.
+    
+    
+    Stability: 
+    
+    Off-policy algorithms like DQN can be unstable if they update their networks using consecutive data. 
+    The replay buffer helps by breaking the temporal correlations between data points, 
+    leading to more stable training.
+    
+    """
+    
     def run_training_loop(self, n_iter, collect_policy, eval_policy,
                           initial_expertdata=None, relabel_with_expert=False,
                           start_relabel_with_expert=1, expert_policy=None):

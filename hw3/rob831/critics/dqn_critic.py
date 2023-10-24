@@ -40,6 +40,34 @@ class DQNCritic(BaseCritic):
         self.q_net.to(ptu.device)
         self.q_net_target.to(ptu.device)
 
+    
+    """
+    Original DQN (from the 2015 "Playing Atari with Deep Reinforcement Learning" paper):
+    
+    Action Selection during epi-greedy exploration: 
+    Use the main Q-network to select the action based on the current state.
+
+    Q-value Update: 
+    Use the target Q-network to compute the target Q-value for the next state. 
+    The action with the highest Q-value is chosen using this target network.
+    
+    Double DQN (from the 2015 paper introducing DDQN):
+
+    Action Selection during epi-greedy exploration: 
+    Use the main Q-network to select the action based on the current state.
+
+    Q-value Update:
+    First, use the main Q-network to determine the best action for the next state.
+    Then, use the target Q-network to compute the Q-value of this chosen action for the next state.
+    
+    In essence:
+    In the original DQN, both action selection and Q-value estimation for the next state (during updates) 
+    are done using their respective networks (main for current, target for next).
+
+    In DDQN, the main Q-network is used to determine the best action for the next state, 
+    but the target Q-network is used to estimate the Q-value of that action.
+    """
+    
     def update(self, ob_no, ac_na, next_ob_no, reward_n, terminal_n):
         """
             Update the parameters of the critic.
@@ -66,27 +94,27 @@ class DQNCritic(BaseCritic):
         # Q-values of all actions at current time step
         qa_t_values = self.q_net(ob_no) # shape: (sum_of_path_lengths, ac_dim)
         
-        # Q-values of action taken at current time step
+        # CURRENT ESTIMATE TO BE TRAINED: Q-values of action taken at current time step
         # for each row in qa_t_values, it's collecting the Q-value corresponding to the action taken, as specified by ac_na.
         q_t_values = torch.gather(qa_t_values, 1, ac_na.unsqueeze(1)).squeeze(1) # shape: (sum_of_path_lengths,)
         
         # TODO compute the Q-values from the target network
         # Q-values of all actions at next time step (tplus1)
+        # Note: Evaluation is always from the target network
         qa_tp1_values = self.q_net_target(next_ob_no) # shape: (sum_of_path_lengths, ac_dim)
 
-        if self.double_q:
+        if self.double_q: # difference lies in q-values at t+1 time step
             # You must fill this part for Q2 of the Q-learning portion of the homework.
             # In double Q-learning, the best action is selected using the Q-network that
             # is being updated, but the Q-value for this action is obtained from the
             # target Q-network. Please review Lecture 8 for more details,
             # and page 4 of https://arxiv.org/pdf/1509.06461.pdf is also a good reference.
 
-            # get the best action
-            # Get the q value for the best action
-
+            # Action selection is from the main Q-network
             qa_tp1_values_ddqn = self.q_net(next_ob_no) # shape: (sum_of_path_lengths, ac_dim)
             best_action = qa_tp1_values_ddqn.argmax(dim=1)
 
+            # Action evaluation is from the target network
             q_tp1 = torch.gather(qa_tp1_values, 1, best_action.unsqueeze(1)).squeeze(1)
         else:
             # "_" is the discarded argmax indices
