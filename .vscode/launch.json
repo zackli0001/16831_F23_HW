@@ -4,13 +4,22 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
-            "name": "Python: Current File",
+            "name": "Python: Run HW3 DQN",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "justMyCode": true
+            "program": "${workspaceFolder}/hw3/rob831/scripts/run_hw3_dqn.py",
+            "args": [
+                "--env_name",
+                "LunarLander-v3",
+                "--exp_name",
+                "q1_dqn_1",
+                "--seed",
+                "1"
+            ],
+            "pythonPath": "/home/zack/Applications/anaconda3/envs/rob831/bin/python"
         }
+        
     ]
 }

@@ -63,7 +63,8 @@ class DQNAgent(object):
                 # to deal with the partial observability of the environment. Get the most recent 
                 # `frame_history_len` observations using functionality from the replay buffer,
                 # and then use those observations as input to your actor. 
-            action = self.actor.get_action(self.replay_buffer.encode_recent_observation())
+            most_recent_observations = self.replay_buffer.sample(self.batch_size)[0]
+            action = self.actor.get_action(most_recent_observations)
         
         # TODO take a step in the environment using the action from the policy
         # HINT1: remember that self.last_obs must always point to the newest/latest observation
@@ -97,7 +98,7 @@ class DQNAgent(object):
         ):
 
             # TODO fill in the call to the update function using the appropriate tensors
-            log = self.critic.update(ob_no, ac_na, re_n, next_ob_no, terminal_n)
+            log = self.critic.update(ob_no, ac_na, next_ob_no, re_n, terminal_n)
 
             # TODO update the target network periodically 
             # HINT: your critic already has this functionality implemented

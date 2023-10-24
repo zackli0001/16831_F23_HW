@@ -72,7 +72,7 @@ class DQNCritic(BaseCritic):
         
         # TODO compute the Q-values from the target network
         # Q-values of all actions at next time step (tplus1)
-        qa_tp1_values = self.q_net_target(next_ob_no) # shape: (sum_of_path_lengths, ac_dim)
+        qa_tp1_values = self.q_net(next_ob_no) # shape: (sum_of_path_lengths, ac_dim)
 
         if self.double_q:
             # You must fill this part for Q2 of the Q-learning portion of the homework.
@@ -80,7 +80,8 @@ class DQNCritic(BaseCritic):
             # is being updated, but the Q-value for this action is obtained from the
             # target Q-network. Please review Lecture 8 for more details,
             # and page 4 of https://arxiv.org/pdf/1509.06461.pdf is also a good reference.
-            TODO
+            
+            q_tp1, _ = self.q_net_target(next_ob_no).max(dim=1) # select best actions at next time step
         else:
             # "_" is the discarded argmax indices
             q_tp1, _ = qa_tp1_values.max(dim=1) # select best actions at next time step
