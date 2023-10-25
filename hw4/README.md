@@ -32,17 +32,17 @@ You may also want to look through [scripts/run_hw4_mb.py](cs16831/hw4_part1/scri
 ### Part 2
 The following files have blanks to be filled with your solutions from homework 1 and 3. The relevant sections are marked with `TODO'. You can get solutions from Ed. 
 
-- [infrastructure/utils.py](cs16831/hw4_part2/infrastructure/utils.py)
-- [infrastructure/rl_trainer.py](cs16831/hw4_part2//infrastructure/rl_trainer.py)
-- [policies/MLP_policy.py](cs16831/hw4_part2/policies/MLP_policy.py)
-- [policies/argmax_policy.py](cs16831/hw4_part2//policies/argmax_policy.py)
-- [critics/dqn_critic.py](cs16831/hw4_part2/critics/dqn_critic.py)
+- [cs16831/hw4_part2/infrastructure/utils.py](cs16831/hw4_part2/infrastructure/utils.py)
+- [cs16831/hw4_part2/infrastructure/rl_trainer.py](cs16831/hw4_part2//infrastructure/rl_trainer.py)
+- [cs16831/hw4_part2/policies/MLP_policy.py](cs16831/hw4_part2/policies/MLP_policy.py)
+- [cs16831/hw4_part2/policies/argmax_policy.py](cs16831/hw4_part2//policies/argmax_policy.py)
+- [cs16831/hw4_part2/critics/dqn_critic.py](cs16831/hw4_part2/critics/dqn_critic.py)
 
 You will then need to implement code in the following files:
 
 For RND :
-- [exploration/rnd_model.py](cs16831/hw4_part2/exploration/rnd_model.py)
-- [agents/explore_or_exploit_agent.py](cs16831/hw4_part2/agents/explore_or_exploit_agent.py)
+- [cs16831/hw4_part2/exploration/rnd_model.py](cs16831/hw4_part2/exploration/rnd_model.py)
+- [cs16831/hw4_part2/agents/explore_or_exploit_agent.py](cs16831/hw4_part2/agents/explore_or_exploit_agent.py)
 
 See the [assignment PDF](cs16831_hw4.pdf) for more details on what files to edit.
 
