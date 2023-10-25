@@ -1,6 +1,7 @@
 from .base_critic import BaseCritic
 from torch import nn
 from torch import optim
+import torch
 
 from rob831.infrastructure import pytorch_util as ptu
 
@@ -50,7 +51,7 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
 
     def forward_np(self, obs):
         obs = ptu.from_numpy(obs)
-        predictions = self(obs)
+        predictions = self(obs)  # also calling forward()
         return ptu.to_numpy(predictions)
 
     def update(self, ob_no, ac_na, next_ob_no, reward_n, terminal_n):
@@ -86,5 +87,29 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
         #       to 0) when a terminal state is reached
         # HINT: make sure to squeeze the output of the critic_network to ensure
         #       that its dimensions match the reward
+
+        ob_no = ptu.from_numpy(ob_no) # shape: (sum_of_path_lengths, ob_dim)
+        ac_na = ptu.from_numpy(ac_na).to(torch.long)
+        next_ob_no = ptu.from_numpy(next_ob_no)
+        reward_n = ptu.from_numpy(reward_n)
+        terminal_n = ptu.from_numpy(terminal_n)
+
+        loss = None
+        for i in range(self.num_target_updates):
+            V_s_prime_output = self.forward(next_ob_no)
+            V_s_prime = V_s_prime_output.squeeze(1) if len(V_s_prime_output.shape) > 1 else V_s_prime_output
+            Q_s_a = reward_n + self.gamma * V_s_prime * (1 - terminal_n)
+            Q_s_a = Q_s_a.detach()
+            
+            for j in range(self.num_grad_steps_per_target_update):
+                self.optimizer.zero_grad()
+                V_s_output = self.forward(ob_no)
+                V_s = V_s_output.squeeze(1) if len(V_s_output.shape) > 1 else V_s_output
+                loss = self.loss(V_s, Q_s_a)
+
+                retain_graph = j != self.num_grad_steps_per_target_update - 1
+                loss.backward(retain_graph=retain_graph)
+
+                self.optimizer.step()
 
         return loss.item()
