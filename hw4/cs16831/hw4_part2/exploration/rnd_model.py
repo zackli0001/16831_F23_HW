@@ -22,12 +22,12 @@ class RNDModel(nn.Module, BaseExplorationModel):
         self.size = hparams['rnd_size']
         self.optimizer_spec = optimizer_spec
 
-        # <DONE>: Create two neural networks:
+        # <TODO>: Create two neural networks:
         # 1) f, the random function we are trying to learn
         # 2) f_hat, the function we are using to learn f
 
     def forward(self, ob_no):
-        # <DONE>: Get the prediction error for ob_no
+        # <TODO>: Get the prediction error for ob_no
         # HINT: Remember to detach the output of self.f!
         pass
 
@@ -37,6 +37,6 @@ class RNDModel(nn.Module, BaseExplorationModel):
         return ptu.to_numpy(error)
 
     def update(self, ob_no):
-        # <DONE>: Update f_hat using ob_no
+        # <TODO>: Update f_hat using ob_no
         # Hint: Take the mean prediction error across the batch
         pass
