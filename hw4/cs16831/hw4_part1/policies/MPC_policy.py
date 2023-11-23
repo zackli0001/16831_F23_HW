@@ -23,7 +23,7 @@ class MPCPolicy(BasePolicy):
         self.env = env
         self.dyn_models = dyn_models
         self.horizon = horizon
-        self.N = N
+        self.N = N  # number of action sequences sampled at each iteration
         self.data_statistics = None  # NOTE must be updated from elsewhere
 
         self.ob_dim = self.env.observation_space.shape[0]
@@ -53,8 +53,8 @@ class MPCPolicy(BasePolicy):
             # TODO(Q1) uniformly sample trajectories and return an array of
             # dimensions (num_sequences, horizon, self.ac_dim) in the range
             # [self.low, self.high]
-
             # Hint: use np.random.uniform and self.low/self.high
+
             random_action_sequences = [np.random.uniform(self.low, self.high, (horizon, self.ac_dim)) for _ in range(num_sequences)]
 
             return random_action_sequences
@@ -108,8 +108,8 @@ class MPCPolicy(BasePolicy):
             predicted_rewards = self.evaluate_candidate_sequences(candidate_action_sequences, obs)
 
             # pick the action sequence and return the 1st element of that sequence
-            best_action_sequence = None  # TODO (Q2)
-            action_to_take = None  # TODO (Q2)
+            best_action_sequence = np.argmax(predicted_rewards)  # TODO (Q2)
+            action_to_take = candidate_action_sequences[best_action_sequence][0]  # TODO (Q2)
             return action_to_take[None]  # Unsqueeze the first index
 
     def calculate_sum_of_rewards(self, obs, candidate_action_sequences, model):

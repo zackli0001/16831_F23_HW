@@ -40,6 +40,7 @@ class MBAgent(BaseAgent):
 
     def train(self, ob_no, ac_na, re_n, next_ob_no, terminal_n):
 
+        # print("Entered MBAgent.train()")
         # training a MB agent refers to updating the predictive (dynamics) model using observed state transitions
         # NOTE: each model in the ensemble is trained on a different random batch of size batch_size
         losses = []
@@ -63,6 +64,7 @@ class MBAgent(BaseAgent):
             losses.append(loss)
 
         avg_loss = np.mean(losses)
+        # print("Exiting MBAgent.train() with a loss of ", avg_loss, ".") 
         return {
             'Training Loss': avg_loss,
         }
