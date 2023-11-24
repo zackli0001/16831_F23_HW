@@ -83,10 +83,11 @@ class FFModel(nn.Module, BaseModel):
 
         # predicted change in obs
         concatenated_input = torch.cat([ptu.from_numpy(obs_normalized), ptu.from_numpy(acs_normalized)], dim=1)
-
+        
         # TODO(Q1) compute delta_pred_normalized and next_obs_pred
         # Hint: as described in the PDF, the output of the network is the
         # *normalized change* in state, i.e. normalized(s_t+1 - s_t).
+        
         delta_pred_normalized = self.delta_network(concatenated_input)
         next_obs_pred = obs_unnormalized + unnormalize(ptu.to_numpy(delta_pred_normalized), delta_mean, delta_std)
         return next_obs_pred, delta_pred_normalized
@@ -105,17 +106,18 @@ class FFModel(nn.Module, BaseModel):
              - 'delta_std'
         :return: a numpy array of the predicted next-states (s_t+1), currently implemented as np.ndarray
         """
-        prediction = self.forward(obs_unnormalized=obs, 
+        # import pdb; pdb.set_trace()
+        prediction, _ = self.forward(obs_unnormalized=obs, 
                                   acs_unnormalized=acs,
                                   obs_mean=data_statistics['obs_mean'],
                                   obs_std=data_statistics['obs_std'],
                                   acs_mean=data_statistics['acs_mean'],
                                   acs_std=data_statistics['acs_std'],
                                   delta_mean=data_statistics['delta_mean'],
-                                  delta_std=data_statistics['delta_std'])[0]
+                                  delta_std=data_statistics['delta_std'])
         # Hint: `self(...)` returns a tuple, but you only need to use one of the
         # outputs.
-        return prediction
+        return prediction # currently implemented as np.ndarray
 
     def update(self, observations, actions, next_observations, data_statistics):
         """
