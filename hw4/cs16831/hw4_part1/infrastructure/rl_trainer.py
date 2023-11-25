@@ -157,8 +157,6 @@ class RL_Trainer(object):
                 print("\nTraining agent...")
             all_logs = self.train_agent()
 
-            print("Finished current training iteration")
-
             # if doing MBPO, train the model free component
             if isinstance(self.agent, MBPOAgent):
                 for _ in range(self.sac_params['n_iter']):

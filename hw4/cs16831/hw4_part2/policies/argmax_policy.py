@@ -18,7 +18,7 @@ class ArgMaxPolicy(object):
         else:
             observation = obs[None]
 
-        ## <DONE> return the action that maxinmizes the Q-value 
+        ## <TODO> return the action that maxinmizes the Q-value 
         # at the current observation as the output
         q_values = self.critic.qa_values(observation)
 
@@ -28,7 +28,7 @@ class ArgMaxPolicy(object):
         else:
             action = q_values.argmax(-1)
 
-        return action[0]
+        return action[0] # shape (1,)
 
     def sample_discrete(self, p):
         # https://stackoverflow.com/questions/40474436/how-to-apply-numpy-random-choice-to-a-matrix-of-probability-values-vectorized-s

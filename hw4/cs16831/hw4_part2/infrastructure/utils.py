@@ -112,7 +112,7 @@ def sample_n_trajectories(env, policy, ntraj, max_path_length, render=False, ren
         # collect rollout
         path = sample_trajectory(env, policy, max_path_length, render, render_mode)
         paths.append(path)
-
+        print('sampled {}/ {} trajs'.format(i, ntraj), end='\r')
     return paths
 
 def Path(obs, image_obs, acs, rewards, next_obs, terminals):

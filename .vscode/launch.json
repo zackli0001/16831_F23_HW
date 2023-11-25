@@ -4,6 +4,16 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        {
+            "name": "Python: hw4 Problem 6",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "args": "--env_name PointmassEasy-v0 --use_rnd --unsupervised_exploration --exp_name q6_env1_rnd",
+            "justMyCode": true,
+            "python": "/home/zack/Applications/anaconda3/envs/rob831/bin/python"
+        },
+
         
         {
             "name": "Python: Run HW3 DQN",

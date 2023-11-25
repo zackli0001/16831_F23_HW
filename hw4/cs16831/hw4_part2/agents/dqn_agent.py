@@ -12,7 +12,6 @@ class DQNAgent(object):
         self.env = env
         self.agent_params = agent_params
         self.batch_size = agent_params['batch_size']
-        # import ipdb; ipdb.set_trace()
         self.last_obs = self.env.reset()
 
         self.num_actions = agent_params['ac_dim']

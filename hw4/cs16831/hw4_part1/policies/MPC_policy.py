@@ -115,7 +115,7 @@ class MPCPolicy(BasePolicy):
             # https://arxiv.org/pdf/1909.11652.pdf
 
             elite_mean = np.zeros((horizon, self.ac_dim))
-            elite_variance = np.ones((horizon, self.ac_dim, self.ac_dim))
+            elite_variance = np.ones((horizon, self.ac_dim))
             for m in range(self.cem_iterations):
                 # - Sample candidate sequences from a Gaussian with the current 
                 #   elite mean and variance
@@ -134,10 +134,11 @@ class MPCPolicy(BasePolicy):
                 
                 predicted_rewards = self.evaluate_candidate_sequences(candidate_action_sequences, obs)
                 top_elite_indices = np.argsort(predicted_rewards)[-self.cem_num_elites:]
-                top_elite_sequences = candidate_action_sequences[top_elite_indices]
+                top_elite_sequences = candidate_action_sequences[top_elite_indices] # shape (num_elites, horizon, self.ac_dim)
 
-                elite_mean = top_elite_sequences.mean(axis=0) # shape (horizon, self.ac_dim)
-                elite_variance = top_elite_sequences.var(axis=0) # shape (horizon, self.ac_dim)
+                # import pdb; pdb.set_trace()
+                elite_mean = self.cem_alpha * top_elite_sequences.mean(axis=0) + (1 - self.cem_alpha) * elite_mean # shape (horizon, self.ac_dim)
+                elite_variance = self.cem_alpha * top_elite_sequences.var(axis=0) + (1 - self.cem_alpha) * elite_variance # shape (horizon, self.ac_dim)
 
 
             # TODO(Q5): Set `cem_action` to the appropriate action chosen by CEM

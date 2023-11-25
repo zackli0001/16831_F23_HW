@@ -171,6 +171,12 @@ class MLPPolicyAWAC(MLPPolicy):
 
         # TODO update the policy network utilizing AWAC update
 
-        actor_loss = None
+        dist = self.forward(observations)
+        log_prob = dist.log_prob(actions)
+        actor_loss = -(log_prob * adv_n).sum()
+
+        self.optimizer.zero_grad()
+        actor_loss.backward()
+        self.optimizer.step()
         
         return actor_loss.item()
